@@ -1,0 +1,58 @@
+name: Build
+run-name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0}', github.ref_name) || null }}
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v[0-9]+*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build
+        run: ./gradlew assembleRelease
+
+      - name: Sign apk files
+        uses: noriban/sign-android-release@v5
+        id: sign_apk
+        with:
+          releaseDirectory: ui/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: testkey
+          keyStorePassword: testkey
+          keyPassword: testkey
+
+      - name: Rename apk files
+        run: |
+          sudo apt update -qq && sudo apt install -y rename
+          find . -type f -name '*-signed.apk' -exec mv {} . \;
+          prename "s/^ui/AmneziaWG_${GITHUB_REF_NAME#v}/;s/-release.+(?=\.apk)//" *.apk
+
+      - name: Upload release assets
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          prerelease: false
+          draft: false
+          # target_commitish: ${{ github.ref_name }}
+          body: |
+            AmneziaWG ${{ github.ref_name }}
+          files: AmneziaWG*.apk
