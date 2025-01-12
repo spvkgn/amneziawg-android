@@ -29,6 +29,6 @@ include(":ui")
 configure<SettingsExtension> {
     buildToolsVersion = "34.0.0"
     compileSdk = 34
-    minSdk = 24
+    minSdk = 21
     ndkVersion = "26.1.10909125"
 }
