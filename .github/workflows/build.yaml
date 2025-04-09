@@ -55,4 +55,6 @@ jobs:
           # target_commitish: ${{ github.ref_name }}
           body: |
             AmneziaWG ${{ github.ref_name }}
+            * built with minSdk = 21 (Android 5.0 Lollipop)
+            * split apk across ABI
           files: AmneziaWG*.apk
