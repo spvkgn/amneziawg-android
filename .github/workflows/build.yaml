@@ -41,7 +41,7 @@ jobs:
 
       - name: Rename apk files
         run: |
-          sudo apt update -qq && sudo apt install -y rename
+          sudo apt install -y rename
           find . -type f -name '*-signed.apk' -exec mv {} . \;
           prename "s/^ui/AmneziaWG_${GITHUB_REF_NAME#v}/;s/-release.+(?=\.apk)//" *.apk
 
